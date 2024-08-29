@@ -3,5 +3,5 @@ datasets
 scikit-learn
 tf-keras==2.16.0
 tensorflow==2.16.2
-# tensorflow-macos==2.16.2
-# tensorflow-metal==1.1.0
+tensorflow-macos==2.16.2
+tensorflow-metal==1.1.0
