@@ -2,7 +2,6 @@ import tensorflow as tf
 from transformers import GPT2Tokenizer, TFGPT2LMHeadModel, create_optimizer
 from transformers import DataCollatorForLanguageModeling
 from datasets import Dataset
-from sklearn.model_selection import train_test_split
 
 # Set up GPU memory growth to avoid OOM errors
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -10,7 +9,7 @@ for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
 
 # Load the pre-trained model and tokenizer
-model_name = "distilgpt2"
+model_name = "openai-community/gpt2"
 tokenizer = GPT2Tokenizer.from_pretrained(model_name)
 model = TFGPT2LMHeadModel.from_pretrained(model_name)
 
@@ -38,8 +37,8 @@ val_tokenized = val_dataset.map(tokenize_function, batched=True)
 sample_text = tokenizer.decode(val_tokenized[10]['input_ids'])
 print("Sample tokenized and decoded text:", sample_text)
 
-if input('continue? [y]') != 'y':
-    exit(0)
+# if input('continue? [y]') != 'y':
+#     exit(0)
 
 # Set up the data collator
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False, return_tensors="tf")
@@ -62,7 +61,7 @@ val_tf_dataset = model.prepare_tf_dataset(
 # Set up training arguments
 num_train_steps = len(train_tokenized) // 4 * 3  # 3 epochs
 optimizer, schedule = create_optimizer(
-    init_lr=1e-4,  # Reduced learning rate
+    init_lr=0.0005,
     num_warmup_steps=100,
     num_train_steps=num_train_steps
 )
@@ -90,19 +89,25 @@ history = model.fit(
 )
 
 # Save the fine-tuned model
-model.save_pretrained("./fine_tuned_distilgpt2_tf")
-tokenizer.save_pretrained("./fine_tuned_distilgpt2_tf")
+model.save_pretrained("./fine_tuned_gpt2_tf")
+tokenizer.save_pretrained("./fine_tuned_gpt2_tf")
 
+# Test generation
 def generate_quote(prompt, temp):
     input_ids = tokenizer.encode(prompt, return_tensors="tf")
+    attention_mask = tf.ones_like(input_ids)
+    
     output = model.generate(
         input_ids,
-        max_length=30,
+        attention_mask=attention_mask,
+        max_length=50,
         num_return_sequences=1,
         temperature=temp,
         top_k=50,
         top_p=0.95,
-        do_sample=True
+        do_sample=True,
+        pad_token_id=tokenizer.eos_token_id,
+        no_repeat_ngram_size=2
     )
     return tokenizer.decode(output[0], skip_special_tokens=True)
 
