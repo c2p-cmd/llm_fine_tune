@@ -8,4 +8,4 @@ from transformers import pipeline
 
 pipe = pipeline('text-generation', "c2p-cmd/gemma-2-2b-quote-generator", token=token, device_map="mps")
 
-print(pipe("Quote:", max_new_tokens=40))
+print(pipe("Quote: I've succeeded", max_new_tokens=40))
