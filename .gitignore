@@ -2,3 +2,4 @@ venv/
 fine_tuned_*
 .DS_Store
 gpt2-*
+.env
